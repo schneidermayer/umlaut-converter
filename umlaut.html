@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Umlaut Converter ;)</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Spline+Sans+Mono&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/ico" href="favicon.jpeg">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+
+    <script>
+        function convert(that) {
+            let result = '' + that.value;
+
+            if (result.length === 0) {
+                return;
+            }
+
+            result = result.replaceAll('ae', 'ä');
+            result = result.replaceAll('oe', 'ö');
+            result = result.replaceAll('ue', 'ü');
+            result = result.replaceAll('Ae', 'Ä');
+            result = result.replaceAll('Oe', 'Ö');
+            result = result.replaceAll('Ue', 'Ü');
+
+            document.getElementById('output').value = result;
+
+            window.localStorage.setItem('lastInput', that.value.trim());
+            window.localStorage.setItem('lastOutput', result);
+        }
+
+        function triggerCopy() {
+            const content = document.getElementById('output').value;
+            const exitCode = copyToClipboard(content);
+            showAlert(exitCode, showAlert);
+        }
+
+        function copyToClipboard(message) {
+            // save scrollbar position, because inserting the element will change it
+            const scrollY = window.scrollY;
+
+            const textArea = document.createElement("textarea");
+            textArea.value = message;
+            textArea.style.opacity = "0";
+            textArea.style.position = "absolute";
+            document.body.insertAdjacentElement("afterbegin", textArea);
+            textArea.focus();
+            textArea.select();
+
+            let exitCode;
+            try {
+                const successful = document.execCommand('copy');
+                exitCode = successful ? 0 : 1;
+            } catch (err) {
+                exitCode = 1;
+            }
+            textArea.remove();
+            // restore scrollbar position
+            window.scrollTo(0, scrollY);
+
+            return exitCode;
+        }
+
+        function showAlert(exitCode) {
+            const alert = document.createElement("div");
+            alert.classList.add("invisible", "alert");
+            alert.classList.add(exitCode === 0 ? "success" : "error");
+            alert.innerHTML = exitCode === 0 ? "✔ copied to clipboard" : "❌ copy failed";
+
+            document.body.insertAdjacentElement("afterbegin", alert);
+            alert.classList.remove("invisible");
+            setTimeout(() => alert.classList.add("invisible"), 2000);
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        function reset() {
+            document.getElementById('input').value = '';
+            document.getElementById('output').value = '';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('input').value = window.localStorage.getItem('lastInput');
+            document.getElementById('output').value = window.localStorage.getItem('lastOutput');
+        });
+
+    </script>
+</head>
+<body>
+    <label for="input">Input without proper Umlaute:</label>
+    <textarea id="input" rows="3" onclick="select()" onkeyup="convert(this);" onchange="triggerCopy()"></textarea>
+
+    <p>&nbsp;</p>
+
+    <label for="output">Converted to Umlaut:</label>
+    <textarea id="output" onclick="select()" rows="3"></textarea>
+</body>
+</html>
